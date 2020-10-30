@@ -1,8 +1,10 @@
 import React, { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { Inputs } from "./components";
-
-import { State } from "./redux";
+import {
+  Inputs,
+  WaveForm,
+  //  FFT,
+  //  Granular
+} from "./components";
 
 import osc, { connect, disconnect } from "./logic/osc";
 
@@ -31,6 +33,7 @@ function App() {
     <div>
       Osc <br />
       <Inputs />
+      <WaveForm />
       <button onMouseDown={connect} onMouseUp={disconnect}>
         Play Sound
       </button>

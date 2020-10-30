@@ -6,14 +6,14 @@ import {
   changeWaveTablePosition,
   changeVoices,
   changeDetune,
+  setAudioFile,
 } from "../redux";
 
 export const Inputs = () => {
   const maxVoices = 16,
-    maxDetune = 100,
-    maxWaveTablePosition = 100;
+    maxDetune = 100;
 
-  const { voices, detune, waveTablePosition } = useSelector(
+  const { voices, detune, waveTablePosition, waveTable } = useSelector(
     (state: State) => state
   );
   const dispatch = useDispatch();
@@ -39,12 +39,17 @@ export const Inputs = () => {
         type="range"
         value={waveTablePosition}
         min="0"
-        max={`${maxWaveTablePosition}`}
+        max={`${waveTable.length - 1}`}
         onChange={(e) =>
           dispatch(changeWaveTablePosition(e.target.valueAsNumber))
         }
       />
       Wavetable Position: {waveTablePosition} <br />
+      <input
+        type="file"
+        onChange={(e) => dispatch(setAudioFile(e.target.files))}
+      />
+      Upload Wavetable
     </div>
   );
 };
