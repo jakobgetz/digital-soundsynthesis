@@ -11,10 +11,12 @@ import {
   SET_AUDIO_FILE_SUCCESS,
   SET_AUDIO_FILE_ERROR,
   SET_WAVETABLE,
+  CHANGE_FREQUENCY_BIN,
+  SET_CURRENT_WAVE,
 } from "./types";
 
 export type Action = { type: ActionTypes; payload?: any };
-export type ActionCreator = (value?: any) => Action;
+export type ActionCreator = (value?: any, id?: number) => Action;
 
 export const setAudioContext: ActionCreator = () => ({
   type: SET_AUDIO_CONTEXT,
@@ -45,8 +47,18 @@ export const setWaveTable: ActionCreator = (value) => ({
   payload: value,
 });
 
+export const changeFrequencyBin: ActionCreator = (value, id) => ({
+  type: CHANGE_FREQUENCY_BIN,
+  payload: { id, value },
+});
+
 export const changeWaveTablePosition: ActionCreator = (value) => ({
   type: CHANGE_WAVE_TABLE_POSITION,
+  payload: value,
+});
+
+export const setCurrentWave: ActionCreator = (value) => ({
+  type: SET_CURRENT_WAVE,
   payload: value,
 });
 
@@ -73,13 +85,12 @@ export const setAudioFile = (data: File | Response | null) => (
       // @ts-ignore
       .arrayBuffer()
       .then((buffer: ArrayBuffer) => new AudioContext().decodeAudioData(buffer))
-      .then((audioBuffer: AudioBuffer) => {
-        console.log(audioBuffer);
-        dispatch(setAudioFileSuccess(audioBuffer.getChannelData(0)));
-      })
+      .then((audioBuffer: AudioBuffer) =>
+        dispatch(setAudioFileSuccess(audioBuffer.getChannelData(0)))
+      )
       .catch((err: Error) => dispatch(setAudioFileError(err.message)));
   } else {
-    const err = new Error("no file selected");
+    const err = new Error("could not find data");
     dispatch(setAudioFileError(err.message));
   }
 };

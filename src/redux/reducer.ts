@@ -10,24 +10,29 @@ import {
   SET_AUDIO_FILE_ERROR,
   SET_AUDIO_FILE_SUCCESS,
   SET_WAVETABLE,
+  CHANGE_FREQUENCY_BIN,
+  SET_CURRENT_WAVE,
 } from "./types";
 import { Action } from "./actions";
 
 export type Voice = {
   voice: OscillatorNode;
-  waveForm: PeriodicWave;
   pan: StereoPannerNode;
 };
 
-type Wave = { periodicWave: PeriodicWave; samples?: number[] };
+type Wave = {
+  periodicWave: PeriodicWave;
+  samples: number[];
+  coefficients: number[];
+};
 
 export type State = {
   ctx: AudioContext;
-  osc: Voice[] | null;
-  voicePan: StereoPannerNode[] | null;
-  waveForm: Wave | null;
+  osc?: Voice[];
+  voicePan?: StereoPannerNode[];
   waveTablePosition: number;
-  waveTable: Wave[];
+  waveTable?: Wave[];
+  currentWave?: Wave;
   voices: number;
   detune: number;
   audioFile: {
@@ -37,44 +42,9 @@ export type State = {
   };
 };
 
-/**
- * Calculates and returns an Array with lenght 0, that contains a sawtooth wave form
- */
-const initialWaveTable = (): Wave[] => {
-  const ctx = new AudioContext();
-  let waveTable = new Array<Wave>(3);
-  waveTable.fill({ periodicWave: new PeriodicWave(ctx) });
-  const n = 1024;
-  const real = new Float32Array(496);
-  const imag = new Float32Array(496);
-
-  // calculate sine
-  real[1] = 1;
-  waveTable[0].periodicWave = ctx.createPeriodicWave(real, imag);
-  // reset real/imag
-  real.forEach(() => 0);
-  imag.forEach(() => 0);
-
-  // calculete square
-  for (let x = 1; x < n; x += 2) imag[x] = 4 / (Math.PI * x);
-  waveTable[1].periodicWave = ctx.createPeriodicWave(real, imag);
-  // reset real/imag
-  real.forEach(() => 0);
-  imag.forEach(() => 0);
-
-  // calculete saw
-  for (let x = 1; x < n; x++) imag[x] = 4 / (Math.PI * x);
-  waveTable[2].periodicWave = ctx.createPeriodicWave(real, imag);
-  return waveTable;
-};
-
 const initialState: State = {
   ctx: new AudioContext(),
-  osc: null,
-  voicePan: null,
-  waveForm: null,
   waveTablePosition: 0,
-  waveTable: initialWaveTable(),
   voices: 1,
   detune: 0,
   audioFile: {
@@ -99,8 +69,12 @@ export const reducer: Reducer<State, Action> = (
       return { ...state, detune: action.payload };
     case SET_WAVETABLE:
       return { ...state, waveTable: action.payload };
+    case CHANGE_FREQUENCY_BIN:
+      return { ...state, waveTable: changeFrequencyBin(state, action.payload) };
     case CHANGE_WAVE_TABLE_POSITION:
       return { ...state, waveTablePosition: action.payload };
+    case SET_CURRENT_WAVE:
+      return { ...state, currentWave: action.payload };
     case SET_AUDIO_FILE_REQUEST:
       return { ...state, audioFile: { ...state.audioFile, loading: true } };
     case SET_AUDIO_FILE_SUCCESS:
@@ -120,4 +94,29 @@ export const reducer: Reducer<State, Action> = (
     default:
       return state;
   }
+};
+
+/**
+ * This Method changes the Frequency bin at a specific index at the currently selected
+ * waveForm in the waveTable (the only property that is changed here is 'coefficients')
+ *
+ * @param state current state
+ * @param payload this is an object holding the id and the new value for the frequency bin
+ */
+const changeFrequencyBin = (
+  state: State,
+  payload: { value: number; id: number }
+) => {
+  const { waveTablePosition, waveTable } = state;
+  if (waveTable)
+    return waveTable.map((wave, p) => {
+      if (p === waveTablePosition)
+        wave.coefficients = wave.coefficients.map((c, i) => {
+          if (payload.id === i) {
+            return payload.value / 100;
+          }
+          return c;
+        });
+      return wave;
+    });
 };

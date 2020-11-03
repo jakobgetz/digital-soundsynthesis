@@ -1,22 +1,19 @@
-import React, { useEffect } from "react";
-import { useDispatch } from "react-redux";
-import {
-  Inputs,
-  WaveForm,
-  //  FFT,
-  //  Granular
-} from "./components";
-import { setAudioFile } from "./redux";
-
+import React, { lazy, Suspense, useEffect } from "react";
+import { BeatLoader } from "react-spinners";
+import { useSelector, useDispatch } from "react-redux";
+import { State, setAudioFile } from "./redux";
 import osc, { connect, disconnect } from "./logic/osc";
+import { Inputs, WaveForm } from "./components";
+const Spectrum = lazy(() => import("./components/Spectrum"));
 
 function App() {
+  const { waveTable } = useSelector((state: State) => state);
   const dispatch = useDispatch();
 
   // load default wave table
   useEffect(() => {
     fetch("/Basic Shapes.wav").then((res) => dispatch(setAudioFile(res)));
-  }, []);
+  }, [dispatch]);
 
   // call osc function
   useEffect(osc, []);
@@ -41,11 +38,18 @@ function App() {
   return (
     <div>
       Osc <br />
-      <Inputs />
-      <WaveForm />
-      <button onMouseDown={connect} onMouseUp={disconnect}>
-        Play Sound
-      </button>
+      {waveTable && (
+        <>
+          <Inputs />
+          <WaveForm />
+          <Suspense fallback={<BeatLoader loading />}>
+            <Spectrum />
+          </Suspense>
+          <button onMouseDown={connect} onMouseUp={disconnect}>
+            Play Sound
+          </button>
+        </>
+      )}
     </div>
   );
 }

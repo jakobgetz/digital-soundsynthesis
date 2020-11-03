@@ -1,14 +1,18 @@
 import watch from "redux-watch";
-import store, { setOsc, setWaveTable, Voice } from "../redux";
+import store, { setCurrentWave, setOsc, setWaveTable, Voice } from "../redux";
 const FFT = require("fft-js");
 
 /**
  * Creating global variables
  * Because of performance reasons, some of the Information from the redux store
- * are saved in global variables within the code, so that there are viewer request
+ * are saved in global variables within the code, so that there are viewer requests
  * to the store.
  */
+const ctx = store.getState().ctx;
 let waveTable = store.getState().waveTable;
+let osc = store.getState().osc;
+let waveTablePosition = store.getState().waveTablePosition;
+let currentWave = store.getState().currentWave;
 
 /**
  * This function is imported outside that file as 'osc'
@@ -20,23 +24,22 @@ export default () => {
    * and when you change the number of voices of the oscillator
    */
   const setUpOsc = () => {
-    const { ctx, osc, voices, waveTablePosition } = store.getState();
+    const { voices } = store.getState();
 
     // disconnecting all previously connected voices if they are not yet disconnected
     if (osc) osc.forEach((voice) => voice.pan.disconnect());
 
     // set up Oscillator by filing the osc array with the diffrent voices, pans, waveForms
     let newOsc = new Array<Voice>(voices);
-    if (waveTable)
-      for (let i = 0; i < voices; i++)
-        newOsc[i] = {
-          voice: ctx.createOscillator(),
-          pan: ctx.createStereoPanner(),
-          waveForm: waveTable[waveTablePosition].periodicWave,
-        };
+    for (let i = 0; i < voices; i++)
+      newOsc[i] = {
+        voice: ctx.createOscillator(),
+        pan: ctx.createStereoPanner(),
+      };
 
     // dispatch the new Oscillator to the redux store
     store.dispatch(setOsc(newOsc));
+    // }
   };
 
   /**
@@ -44,7 +47,7 @@ export default () => {
    * this means it gets called only every time after the setUpOsc Method
    */
   const startOsc = () => {
-    const { osc } = store.getState();
+    osc = store.getState().osc;
     // starting each oscillator node of each voice and connect them to the panning of each voice
     if (osc)
       osc.forEach((voice) => {
@@ -77,13 +80,16 @@ export default () => {
    * It also gets called afer te user changed the number of voices
    */
   const setUpWaveForm = () => {
-    const { osc, waveTablePosition } = store.getState();
-    waveTable = store.getState().waveTable;
+    waveTablePosition = store.getState().waveTablePosition;
     // setting the waveform of each oscillator node
-    if (osc)
-      osc.forEach((voice) =>
-        voice.voice.setPeriodicWave(waveTable[waveTablePosition].periodicWave)
-      );
+    if (osc && waveTable) {
+      osc.forEach((voice) => {
+        voice.voice.setPeriodicWave(
+          // @ts-ignore
+          waveTable[waveTablePosition].periodicWave
+        );
+      });
+    }
   };
 
   /**
@@ -91,7 +97,6 @@ export default () => {
    * after that is done, the new waveTable is dispatched to the store
    */
   const createWaveTable = () => {
-    const { ctx } = store.getState();
     const { audio } = store.getState().audioFile;
     const waveTableSampleLength = 2048;
     let audioArray = new Array(audio.length);
@@ -104,17 +109,14 @@ export default () => {
     waveTableAudioArray = waveTableAudioArray.map(() =>
       audioArray.slice(audioPosition, (audioPosition += waveTableSampleLength))
     );
-    // normalize waveTableAudioArray
-    // waveTableAudioArray = waveTableAudioArray.map((wave) => {
-    //   const maxAmplitude = getMaxValue(wave);
-    //   return wave.map((sample) => sample / maxAmplitude);
-    // });
 
     // get Phasors
     const phasors = waveTableAudioArray.map((wave) => FFT.fft(wave));
 
     // fourier coefficients
-    const magnitudes = phasors.map((ph) => FFT.util.fftMag(ph));
+    let magnitudes = phasors.map((ph) => FFT.util.fftMag(ph));
+    magnitudes = magnitudes.map((m) => m.map((a: number) => Math.floor(a)));
+    magnitudes = magnitudes.map((m) => normalize(m));
 
     // set Wavetable
     const newWaveTable = magnitudes.map((m, i) => ({
@@ -123,8 +125,47 @@ export default () => {
         m
       ),
       samples: waveTableAudioArray[i],
+      coefficients: m,
     }));
+
     store.dispatch(setWaveTable(newWaveTable));
+    store.dispatch(setCurrentWave(newWaveTable[waveTablePosition]));
+  };
+
+  /**
+   * constructs a waveform out of the current coefficients
+   */
+  const constructWaveForm = () => {
+    if (currentWave) {
+      // set periodic Wave
+      currentWave.periodicWave = ctx.createPeriodicWave(
+        currentWave.coefficients.map(() => 0),
+        currentWave.coefficients
+      );
+      // fourier transform to set samples
+      let sample;
+      for (let x = 0; x < 2048; x++) {
+        sample = 0;
+        for (let k = 0; k < 1024; k++) {
+          sample +=
+            currentWave.coefficients[k] *
+            Math.sin((-2 * Math.PI * x * k) / 2048);
+        }
+        currentWave.samples[x] = sample;
+      }
+      currentWave.samples = normalize(currentWave.samples);
+    }
+  };
+
+  /**
+   * changes the wavetable when the current waveform changes
+   */
+  const changeWaveTable = () => {
+    if (waveTable && currentWave) {
+      waveTable[waveTablePosition] = currentWave;
+      store.dispatch(setWaveTable(waveTable));
+      setUpWaveForm();
+    }
   };
 
   /**
@@ -145,9 +186,25 @@ export default () => {
   const watchAudioFileAudio = watch(store.getState, "audioFile.audio");
   store.subscribe(watchAudioFileAudio(createWaveTable));
   const watchWaveTable = watch(store.getState, "waveTable");
-  store.subscribe(watchWaveTable(setUpWaveForm));
+  store.subscribe(
+    watchWaveTable(() => (waveTable = store.getState().waveTable))
+  );
+  const watchCurrentWave = watch(store.getState, "currentWave");
+  store.subscribe(
+    watchCurrentWave(() => (currentWave = store.getState().currentWave))
+  );
+  const watchCurrentWaveCoefficients = watch(
+    store.getState,
+    "currentWave.coefficients"
+  );
+  store.subscribe(watchCurrentWaveCoefficients(constructWaveForm));
+  const watchCurrentWavePeriodicWave = watch(
+    store.getState,
+    "currentWave.periodicWave"
+  );
+  store.subscribe(watchCurrentWavePeriodicWave(changeWaveTable));
 
-  // when the application starts the oscillator gets set to its default settings
+  // call this once when the page is loaded
   setUpOsc();
 };
 
@@ -168,7 +225,7 @@ export const disconnect = () => {
 };
 
 /**
- * This function returns a position in [-1, 1] for a cirtain item
+ * This function returns a position in [-1, 1] for a certain item
  * the values beetween -1 and 1 are on a grid with the grid size of @param steps
  * and the exact position is the grid point at @param index
  */
@@ -178,17 +235,10 @@ const spread = (steps: number, index: number): number => {
 };
 
 /**
- * This function returns a positive value of the number which is the most away from 0
- * @param array
+ * normalizes the numbers in an array of Floats in a range between [0, 1];
+ * @param numArray
  */
-const getMaxValue = (array: number[]): number => {
-  let maxValue = 0;
-  array.map((n) => {
-    let currentValue = n;
-    if (currentValue < 0) currentValue = currentValue * -1;
-    if (currentValue > maxValue) {
-      maxValue = n;
-    }
-  });
-  return maxValue;
+const normalize = (numArray: number[]): number[] => {
+  const max = Math.max(...numArray);
+  return numArray.map((a) => a / max);
 };

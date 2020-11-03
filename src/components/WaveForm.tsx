@@ -13,7 +13,7 @@ export const WaveForm = () => {
       width: 300,
       height: 100,
     });
-    
+
     // Create one Konva Layer
     let layer = new Konva.Layer();
 
@@ -27,12 +27,13 @@ export const WaveForm = () => {
 
     // Calculate coordinates for graph based on the samples
     let coordinates: number[] = [];
-    waveTable[waveTablePosition].samples?.map((sample, i) => {
-      coordinates.push(
-        calcX(i) * stage.width(),
-        sample * (stage.height() / 2 - 1) + stage.height() / 2
-      );
-    });
+    if (waveTable)
+      waveTable[waveTablePosition].samples?.map((sample, i) => {
+        coordinates.push(
+          calcX(i) * stage.width(),
+          sample * (stage.height() / 2 - 1) + stage.height() / 2
+        );
+      });
 
     // Create Konva Line based on the coordinates
     const graph = new Konva.Line({
@@ -48,8 +49,11 @@ export const WaveForm = () => {
   };
 
   const calcX = (i: number) => {
-    const len = waveTable[waveTablePosition].samples?.length;
-    return len ? i / len : i;
+    if (waveTable) {
+      const len = waveTable[waveTablePosition].samples?.length;
+      return len ? i / len : i;
+    }
+    return 0;
   };
 
   useEffect(() => {

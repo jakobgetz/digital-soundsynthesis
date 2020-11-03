@@ -7,6 +7,7 @@ import {
   changeVoices,
   changeDetune,
   setAudioFile,
+  setCurrentWave,
 } from "../redux";
 
 export const Inputs = () => {
@@ -22,7 +23,7 @@ export const Inputs = () => {
     dispatch(setAudioFile(e.target.files && e.target.files[0]));
   };
 
-  return (
+  return waveTable ? (
     <div>
       <input
         type="range"
@@ -48,10 +49,11 @@ export const Inputs = () => {
         onChange={(e) =>
           dispatch(changeWaveTablePosition(e.target.valueAsNumber))
         }
+        onMouseUp={() => dispatch(setCurrentWave(waveTable[waveTablePosition]))}
       />
       Wavetable Position: {waveTablePosition} <br />
       <input type="file" onChange={(e) => uploadFile(e)} />
       Upload Wavetable
     </div>
-  );
+  ) : null;
 };
