@@ -1,15 +1,24 @@
 import React, { useEffect } from "react";
+import { useDispatch } from "react-redux";
 import {
   Inputs,
   WaveForm,
   //  FFT,
   //  Granular
 } from "./components";
+import { setAudioFile } from "./redux";
 
 import osc, { connect, disconnect } from "./logic/osc";
 
 function App() {
-  // read osc function
+  const dispatch = useDispatch();
+
+  // load default wave table
+  useEffect(() => {
+    fetch("/Basic Shapes.wav").then((res) => dispatch(setAudioFile(res)));
+  }, []);
+
+  // call osc function
   useEffect(osc, []);
 
   // add event listener so you can now play sound by pressing a on your keybord
@@ -26,7 +35,7 @@ function App() {
         (e) => e.key === "a" && disconnect()
       );
     };
-  });
+  }, []);
 
   // jsx
   return (

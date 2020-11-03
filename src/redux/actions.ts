@@ -64,18 +64,19 @@ const setAudioFileError: ActionCreator = (value) => ({
   payload: value,
 });
 
-export const setAudioFile = (fileList: FileList | null) => (
+export const setAudioFile = (data: File | Response | null) => (
   dispatch: Dispatch
 ) => {
   dispatch(setAudioFileRequest());
-  if (fileList) {
-    fileList[0]
+  if (data) {
+    data
       // @ts-ignore
       .arrayBuffer()
       .then((buffer: ArrayBuffer) => new AudioContext().decodeAudioData(buffer))
-      .then((data: AudioBuffer) =>
-        dispatch(setAudioFileSuccess(data.getChannelData(0)))
-      )
+      .then((audioBuffer: AudioBuffer) => {
+        console.log(audioBuffer);
+        dispatch(setAudioFileSuccess(audioBuffer.getChannelData(0)));
+      })
       .catch((err: Error) => dispatch(setAudioFileError(err.message)));
   } else {
     const err = new Error("no file selected");

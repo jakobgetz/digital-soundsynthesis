@@ -1,42 +1,59 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
-import styled from "styled-components";
+import Konva from "konva";
 import { State } from "../redux";
-
-const CANVAS = styled.div`
-  width: 300px;
-  height: 100px;
-  border: 1px solid black;
-  margin: 5px;
-  position: relative;
-`;
-
-type Props = {
-  x: number;
-  y: number;
-};
-
-const DIV = styled.div`
-  position: absolute;
-  left: ${(p: Props) => p.x * 100}%;
-  bottom: ${(p: Props) => 50 + p.y * 50}%;
-  width: 1px;
-  height: 1px;
-  background-color: black;
-`;
 
 export const WaveForm = () => {
   const { waveTable, waveTablePosition } = useSelector((state: State) => state);
+
+  const renderKonva = () => {
+    // Create Konva Stage
+    let stage = new Konva.Stage({
+      container: "container",
+      width: 300,
+      height: 100,
+    });
+    
+    // Create one Konva Layer
+    let layer = new Konva.Layer();
+
+    // Create Outline for Konva Stage
+    let container = new Konva.Rect({
+      width: stage.width(),
+      height: stage.height(),
+      stroke: "black",
+      strokeWidth: 1,
+    });
+
+    // Calculate coordinates for graph based on the samples
+    let coordinates: number[] = [];
+    waveTable[waveTablePosition].samples?.map((sample, i) => {
+      coordinates.push(
+        calcX(i) * stage.width(),
+        sample * (stage.height() / 2 - 1) + stage.height() / 2
+      );
+    });
+
+    // Create Konva Line based on the coordinates
+    const graph = new Konva.Line({
+      points: coordinates,
+      stroke: "black",
+      storkeWidth: 1,
+    });
+
+    // Add elements to Konva Stage
+    layer.add(container);
+    layer.add(graph);
+    stage.add(layer);
+  };
 
   const calcX = (i: number) => {
     const len = waveTable[waveTablePosition].samples?.length;
     return len ? i / len : i;
   };
-  return (
-    <CANVAS>
-      {waveTable[waveTablePosition].samples?.map((sample, i) => (
-        <DIV key={i} x={calcX(i)} y={sample} />
-      ))}
-    </CANVAS>
-  );
+
+  useEffect(() => {
+    renderKonva();
+  }, [waveTable, waveTablePosition]);
+  return <div id="container"></div>;
 };

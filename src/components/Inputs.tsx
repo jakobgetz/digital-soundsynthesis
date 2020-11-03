@@ -17,6 +17,11 @@ export const Inputs = () => {
     (state: State) => state
   );
   const dispatch = useDispatch();
+
+  const uploadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setAudioFile(e.target.files && e.target.files[0]));
+  };
+
   return (
     <div>
       <input
@@ -45,10 +50,7 @@ export const Inputs = () => {
         }
       />
       Wavetable Position: {waveTablePosition} <br />
-      <input
-        type="file"
-        onChange={(e) => dispatch(setAudioFile(e.target.files))}
-      />
+      <input type="file" onChange={(e) => uploadFile(e)} />
       Upload Wavetable
     </div>
   );

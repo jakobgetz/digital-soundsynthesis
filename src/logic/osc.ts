@@ -3,6 +3,14 @@ import store, { setOsc, setWaveTable, Voice } from "../redux";
 const FFT = require("fft-js");
 
 /**
+ * Creating global variables
+ * Because of performance reasons, some of the Information from the redux store
+ * are saved in global variables within the code, so that there are viewer request
+ * to the store.
+ */
+let waveTable = store.getState().waveTable;
+
+/**
  * This function is imported outside that file as 'osc'
  * it gets called when the application starts
  */
@@ -12,7 +20,7 @@ export default () => {
    * and when you change the number of voices of the oscillator
    */
   const setUpOsc = () => {
-    const { ctx, osc, voices, waveTable, waveTablePosition } = store.getState();
+    const { ctx, osc, voices, waveTablePosition } = store.getState();
 
     // disconnecting all previously connected voices if they are not yet disconnected
     if (osc) osc.forEach((voice) => voice.pan.disconnect());
@@ -69,7 +77,8 @@ export default () => {
    * It also gets called afer te user changed the number of voices
    */
   const setUpWaveForm = () => {
-    const { osc, waveTable, waveTablePosition } = store.getState();
+    const { osc, waveTablePosition } = store.getState();
+    waveTable = store.getState().waveTable;
     // setting the waveform of each oscillator node
     if (osc)
       osc.forEach((voice) =>
@@ -108,14 +117,14 @@ export default () => {
     const magnitudes = phasors.map((ph) => FFT.util.fftMag(ph));
 
     // set Wavetable
-    const waveTable = magnitudes.map((m, i) => ({
+    const newWaveTable = magnitudes.map((m, i) => ({
       periodicWave: ctx.createPeriodicWave(
         m.map(() => 0),
         m
       ),
       samples: waveTableAudioArray[i],
     }));
-    store.dispatch(setWaveTable(waveTable));
+    store.dispatch(setWaveTable(newWaveTable));
   };
 
   /**
