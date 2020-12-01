@@ -1,11 +1,7 @@
 import { Reducer } from "redux";
 import {
-  CHANGE_DETUNE,
-  CHANGE_VOICES,
+  SET_IS_PLAYING,
   CHANGE_WAVE_TABLE_POSITION,
-  SET_OSC,
-  SET_AUDIO_CONTEXT,
-  // SET_VOICE_PAN,
   SET_AUDIO_FILE_REQUEST,
   SET_AUDIO_FILE_ERROR,
   SET_AUDIO_FILE_SUCCESS,
@@ -15,11 +11,6 @@ import {
 } from "./types";
 import { Action } from "./actions";
 
-export type Voice = {
-  voice: OscillatorNode;
-  pan: StereoPannerNode;
-};
-
 type Wave = {
   periodicWave: PeriodicWave;
   samples: number[];
@@ -27,14 +18,10 @@ type Wave = {
 };
 
 export type State = {
-  ctx: AudioContext;
-  osc?: Voice[];
-  voicePan?: StereoPannerNode[];
+  isPlaying: boolean
   waveTablePosition: number;
   waveTable?: Wave[];
   currentWave?: Wave;
-  voices: number;
-  detune: number;
   audioFile: {
     loading: boolean;
     error: string;
@@ -43,10 +30,8 @@ export type State = {
 };
 
 const initialState: State = {
-  ctx: new AudioContext(),
+  isPlaying: false,
   waveTablePosition: 0,
-  voices: 1,
-  detune: 0,
   audioFile: {
     loading: false,
     error: "",
@@ -59,14 +44,8 @@ export const reducer: Reducer<State, Action> = (
   action
 ) => {
   switch (action.type) {
-    case SET_AUDIO_CONTEXT:
-      return { ...state, ctx: new AudioContext() };
-    case SET_OSC:
-      return { ...state, osc: action.payload };
-    case CHANGE_VOICES:
-      return { ...state, voices: action.payload };
-    case CHANGE_DETUNE:
-      return { ...state, detune: action.payload };
+    case SET_IS_PLAYING:
+      return { ...state, isPlaying: !state.isPlaying};
     case SET_WAVETABLE:
       return { ...state, waveTable: action.payload };
     case CHANGE_FREQUENCY_BIN:

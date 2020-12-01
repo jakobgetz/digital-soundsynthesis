@@ -1,45 +1,21 @@
 import { Dispatch } from "redux";
 import {
   ActionTypes,
-  CHANGE_DETUNE,
-  CHANGE_VOICES,
   CHANGE_WAVE_TABLE_POSITION,
-  SET_OSC,
-  SET_AUDIO_CONTEXT,
-  SET_VOICE_PAN,
   SET_AUDIO_FILE_REQUEST,
   SET_AUDIO_FILE_SUCCESS,
   SET_AUDIO_FILE_ERROR,
   SET_WAVETABLE,
   CHANGE_FREQUENCY_BIN,
   SET_CURRENT_WAVE,
+  SET_IS_PLAYING,
 } from "./types";
 
 export type Action = { type: ActionTypes; payload?: any };
 export type ActionCreator = (value?: any, id?: number) => Action;
 
-export const setAudioContext: ActionCreator = () => ({
-  type: SET_AUDIO_CONTEXT,
-});
-
-export const setOsc: ActionCreator = (value) => ({
-  type: SET_OSC,
-  payload: value,
-});
-
-export const setVoicePan: ActionCreator = (value) => ({
-  type: SET_VOICE_PAN,
-  payload: value,
-});
-
-export const changeVoices: ActionCreator = (value) => ({
-  type: CHANGE_VOICES,
-  payload: value,
-});
-
-export const changeDetune: ActionCreator = (value) => ({
-  type: CHANGE_DETUNE,
-  payload: value,
+export const setIsPlaying: ActionCreator = () => ({
+  type: SET_IS_PLAYING,
 });
 
 export const setWaveTable: ActionCreator = (value) => ({

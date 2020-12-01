@@ -12,13 +12,13 @@ const CANVAS = styled.div`
 `;
 
 const Spectrum = () => {
-  const { waveTable, waveTablePosition } = useSelector((state: State) => state);
+  const { currentWave } = useSelector((state: State) => state);
 
   return (
     <CANVAS>
-      {waveTable &&
-        waveTable[waveTablePosition].coefficients.map(
-          (_, i) => i !== 0 && i < 512 && <BinSlider key={i} i={i} />
+      {currentWave &&
+        currentWave.coefficients.map(
+          (_, i) => i !== 0 && i < 200 && <BinSlider key={i} i={i} />
         )}
     </CANVAS>
   );

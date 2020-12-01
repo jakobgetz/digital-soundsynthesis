@@ -16,17 +16,15 @@ const BIN = styled.input`
 `;
 
 export const BinSlider: React.FC<Props> = ({ i }) => {
-  const { waveTable, waveTablePosition } = useSelector((state: State) => state);
+  const { currentWave } = useSelector((state: State) => state);
   const [amplitude, setAmplitude] = useState(
-    waveTable ? waveTable[waveTablePosition].coefficients[i] * 100 : 0
+    currentWave ? currentWave.coefficients[i] * 100 : 0
   );
   const dispatch = useDispatch();
 
   useEffect(() => {
-    setAmplitude(
-      waveTable ? waveTable[waveTablePosition].coefficients[i] * 100 : 0
-    );
-  }, [waveTable, waveTablePosition]);
+    setAmplitude(currentWave ? currentWave.coefficients[i] * 100 : 0);
+  }, [currentWave]);
 
   return (
     <BIN
