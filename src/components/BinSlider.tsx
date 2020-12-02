@@ -6,6 +6,7 @@ import { changeFrequencyBin, State } from "../redux";
 type Props = {
   i: number;
 };
+
 const BIN = styled.input`
   transform: rotate(270deg);
   display: inline;

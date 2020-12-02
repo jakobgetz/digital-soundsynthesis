@@ -3,10 +3,26 @@ import { useSelector } from "react-redux";
 import Konva from "konva";
 import { State } from "../redux";
 
-export const WaveForm = () => {
+const WaveForm = () => {
   const { waveTable, waveTablePosition } = useSelector((state: State) => state);
 
   const renderKonva = () => {
+    /**
+     * calculate the coordinates of the samples based on
+     * waveTable, waveTablePosition und stage
+     */
+    const calcCoordinates = () => {
+      let coordinates: number[] = [];
+      if (waveTable)
+        waveTable[waveTablePosition].samples.map((sample, i) => {
+          coordinates.push(
+            calcX(i) * stage.width(),
+            sample * (stage.height() / 2) + (stage.height() / 2)
+          );
+        });
+      return coordinates;
+    };
+
     // Create Konva Stage
     let stage = new Konva.Stage({
       container: "container",
@@ -26,14 +42,7 @@ export const WaveForm = () => {
     });
 
     // Calculate coordinates for graph based on the samples
-    let coordinates: number[] = [];
-    if (waveTable)
-      waveTable[waveTablePosition].samples?.map((sample, i) => {
-        coordinates.push(
-          calcX(i) * stage.width(),
-          sample * (stage.height() / 2 - 1) + stage.height() / 2
-        );
-      });
+    let coordinates = calcCoordinates();
 
     // Create Konva Line based on the coordinates
     const graph = new Konva.Line({
@@ -48,6 +57,10 @@ export const WaveForm = () => {
     stage.add(layer);
   };
 
+  /**
+   * calculate the x coordinate based on
+   * @param i index of the sample
+   */
   const calcX = (i: number) => {
     if (waveTable) {
       const len = waveTable[waveTablePosition].samples?.length;
@@ -61,3 +74,5 @@ export const WaveForm = () => {
   }, [waveTable, waveTablePosition]);
   return <div id="container"></div>;
 };
+
+export default WaveForm;

@@ -18,7 +18,7 @@ const Spectrum = () => {
     <CANVAS>
       {currentWave &&
         currentWave.coefficients.map(
-          (_, i) => i !== 0 && i < 200 && <BinSlider key={i} i={i} />
+          (_, i) => i !== 0 && i < 100 && <BinSlider key={i} i={i} />
         )}
     </CANVAS>
   );

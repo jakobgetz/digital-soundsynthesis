@@ -17,16 +17,18 @@ type Wave = {
   coefficients: number[];
 };
 
+type FileUpload = {
+  loading: boolean;
+  audio: Float32Array;
+  error: string
+}
+
 export type State = {
   isPlaying: boolean
   waveTablePosition: number;
   waveTable?: Wave[];
   currentWave?: Wave;
-  audioFile: {
-    loading: boolean;
-    error: string;
-    audio: Float32Array;
-  };
+  audioFile: FileUpload
 };
 
 const initialState: State = {
