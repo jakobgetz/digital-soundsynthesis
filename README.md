@@ -1,44 +1,28 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# digital-soundsynthesis
 
-## Available Scripts
+This repository contains four little applications which are created to assist my argumentation for my bachelor thesis: <br/>
+<b>"audio in the browser - implementation of a digital sound generator with the web audio api"</b> <br/>
+To read the whole thesis visit: <b>www.jakobgetz.com/...</b>
 
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+## basic-osciallator
+  
+  This program is created to demonstrate the basic functionality of the web audio api's OscillatorNode. It consists out of one HTML file and can be opened through the browser.<br/>
+  - You will find an online version of this program here: <b>www.jakobgetz.com/...</b><br/>
+  - To download the source code visit the branch "basic-osccilator" of this repository
+  
+  ## custom-wave-shapes
+  
+  This program is created to demonstrate the properties of the web audio api's PeriodicWave object. This object provides the developer with a possibility to create custom wave shapes for digital sound generation via additive synthesis. <br/>
+  - You will find an online version of this program here: <b>www.jakobgetz.com/...</b><br/>
+  - To download the source code visit the branch "custom-wave-shapes" of this repository
+  
+  ## fft
+  
+  This program is created to demonstrate the usage of the Fast-Fourier-Transform in JavaScript. It uses the package fft-js: https://github.com/vail-systems/node-fft <br/>
+  - To download the source code visit the branch "fft" of this repository. You will need node installed to execute the application
+  
+  ## oscillator
+  
+  This react application is a full implementation of an oscillator which provides possibilities for generating sound via additive synthesis, resynthesis and wavetable synthesis. It comes whith three example wavetables provided by Steve Duda: https://xferrecords.com<br/>
+  - You will find an online version of this application here: <b>www.jakobgetz.com/...</b><br/>
+  - To download the wavetables or source code visit the branch "oscillator" of this repository
