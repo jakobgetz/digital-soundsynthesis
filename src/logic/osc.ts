@@ -3,23 +3,21 @@ import store, { setCurrentWave, setWaveTable } from "../redux";
 const FFT = require("fft-js");
 
 /**
- * Creating global variables
- * Because of performance reasons, some of the Information from the redux store
- * are saved in global variables within the code, so that there are viewer requests
- * to the store.
- */
-let waveTable = store.getState().waveTable;
-let waveTablePosition = store.getState().waveTablePosition;
-let currentWave = store.getState().currentWave;
-
-/**
  * This function is imported outside that file as 'osc'
  * it gets called when the application starts
  */
 const osc = () => {
-  const ctx = new AudioContext();
-  const osc = ctx.createOscillator();
-  osc.start();
+  /**
+   * This function gets calles whenever the user changes the wavetable position of the oscillator
+   * It also gets called afer te user changed the number of voices
+   */
+  const setUpWaveForm = () => {
+    waveTablePosition = store.getState().waveTablePosition;
+    // setting the waveform of the oscillator node
+    if (waveTable) {
+      osc.setPeriodicWave(waveTable[waveTablePosition].periodicWave);
+    }
+  };
 
   /**
    * starts or stops the playback of the oscillator when the play sound button is pressed
@@ -30,56 +28,49 @@ const osc = () => {
   };
 
   /**
-   * This function gets calles whenever the user changes the wavetable position of the oscillator
-   * It also gets called afer te user changed the number of voices
-   */
-  const setUpWaveForm = () => {
-    waveTablePosition = store.getState().waveTablePosition;
-    // setting the waveform of each oscillator node
-    if (waveTable) {
-      osc.setPeriodicWave(
-        // @ts-ignore
-        waveTable[waveTablePosition].periodicWave
-      );
-    }
-  };
-
-  /**
    * creates a waveTable from an audioFile which is stored in the redux store
    * after that is done, the new waveTable is dispatched to the store
    */
   const createWaveTable = () => {
+    // get audio data from the store
     const { audio } = store.getState().audioFile;
+
+    // define the sample length for each wave
     const waveTableSampleLength = 2048;
+
+    // copy audio data from store into simple Array
     let audioArray = new Array(audio.length);
-    let waveTableAudioArray = new Array<number[]>(
+    for (let i = 0; i < audio.length; i++) audioArray[i] = audio[i];
+
+    // copy the actual waveform samples into 2D Array
+    let samples = new Array<number[]>(
       Math.floor(audio.length / waveTableSampleLength)
     );
-    for (let i = 0; i < audio.length; i++) audioArray[i] = audio[i];
     let audioPosition = 0;
-    waveTableAudioArray.fill([]);
-    waveTableAudioArray = waveTableAudioArray.map(() =>
+    samples.fill([]);
+    samples = samples.map(() =>
       audioArray.slice(audioPosition, (audioPosition += waveTableSampleLength))
     );
 
     // get Phasors
-    const phasors = waveTableAudioArray.map((wave) => FFT.fft(wave));
+    const phasors = samples.map((wave) => FFT.fft(wave));
 
     // fourier coefficients
     let magnitudes = phasors.map((ph) => FFT.util.fftMag(ph));
     magnitudes = magnitudes.map((m) => m.map((a: number) => Math.floor(a)));
     magnitudes = magnitudes.map((m) => normalize(m));
 
-    // set Wavetable
+    // create Wavetable
     const newWaveTable = magnitudes.map((m, i) => ({
       periodicWave: ctx.createPeriodicWave(
         m.map(() => 0),
         m
       ),
-      samples: waveTableAudioArray[i],
+      samples: samples[i],
       coefficients: m,
     }));
 
+    // set Wavetable in the store
     store.dispatch(setWaveTable(newWaveTable));
     store.dispatch(setCurrentWave(newWaveTable[waveTablePosition]));
   };
@@ -89,11 +80,13 @@ const osc = () => {
    */
   const constructWaveForm = () => {
     if (currentWave) {
+      
       // set periodic Wave
       currentWave.periodicWave = ctx.createPeriodicWave(
         currentWave.coefficients.map(() => 0),
         currentWave.coefficients
       );
+
       // fourier transform to set samples
       let sample;
       for (let x = 0; x < 2048; x++) {
@@ -107,12 +100,8 @@ const osc = () => {
       }
       currentWave.samples = normalize(currentWave.samples);
     }
-  };
 
-  /**
-   * changes the wavetable when the current waveform changes
-   */
-  const changeWaveTable = () => {
+    // set new waveTable
     if (waveTable && currentWave) {
       waveTable[waveTablePosition] = currentWave;
       store.dispatch(setWaveTable(waveTable));
@@ -144,11 +133,18 @@ const osc = () => {
     "currentWave.coefficients"
   );
   store.subscribe(watchCurrentWaveCoefficients(constructWaveForm));
-  const watchCurrentWavePeriodicWave = watch(
-    store.getState,
-    "currentWave.periodicWave"
-  );
-  store.subscribe(watchCurrentWavePeriodicWave(changeWaveTable));
+
+  const ctx = new AudioContext();
+  const osc = ctx.createOscillator();
+  osc.start();
+
+  /**
+   * Creating global variables
+   * Because of performance reasons, some of the Information from the redux store
+   * are saved in global variables within the code, so that there are viewer requests
+   * to the store.
+   */
+  let { waveTablePosition, waveTable, currentWave } = store.getState();
 
   setUpWaveForm();
 };
