@@ -1,0 +1,14 @@
+{
+  "name": "fft",
+  "version": "1.0.0",
+  "description": "Simple project to showcase the functionality and the algorithm behind the Fast-Fourier-Transform",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jakob Getz",
+  "license": "MIT",
+  "dependencies": {
+    "fft-js": "0.0.12"
+  }
+}
