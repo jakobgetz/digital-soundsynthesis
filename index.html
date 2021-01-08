@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta
+      author="Jakob Getz"
+      university="Hochschule der Medien Stuttgart"
+      email="jg123@hdm-stuttgart.de"
+    />
+    <title>Basic Oscillator</title>
+  </head>
+  <body>
+    <h2>Basic Oscillator</h2>
+    <p>
+      Please put down your Volume a little bit, so you wont get potentially hurt
+    </p>
+    
+    <!--Create Input Elements-->
+    <!--Start AudioContext-->
+    <button onclick="startAudioContext()">Start AudioContext</button>
+    <br />
+
+    <!--On/Off-->
+    <button onclick="connect()">On</button>
+    <button onclick="disconnect()">Off</button>
+    <br />
+
+    <!--Change Frequency-->
+    <input type="number" onchange="setFrequency(this.value)" /> Frequency
+    (default: 440Hz)
+    <br />
+
+    <!--Change Wave Form-->
+    <input
+      type="radio"
+      id="sine"
+      name="waveForm"
+      onclick="setWaveForm(this.id)"
+      checked="checked"
+    />Sine
+    <input
+      type="radio"
+      id="triangle"
+      name="waveForm"
+      onclick="setWaveForm(this.id)"
+    />Triangle
+    <input
+      type="radio"
+      id="square"
+      name="waveForm"
+      onclick="setWaveForm(this.id)"
+    />Rectangle
+    <input
+      type="radio"
+      id="sawtooth"
+      name="waveForm"
+      onclick="setWaveForm(this.id)"
+    />Sawtooth
+
+    <!--Javascript-->
+    <script>
+      // define variables
+      let context;
+      let oscillator;
+
+      // define functions
+      const startAudioContext = () => {
+        context = new AudioContext();
+        oscillator = context.createOscillator();
+        oscillator.start();
+      };
+      const connect = () => oscillator.connect(context.destination);
+      const disconnect = () => oscillator.disconnect();
+      const setFrequency = (value) => (oscillator.frequency.value = value);
+      const setWaveForm = (waveForm) => (oscillator.type = waveForm);
+    </script>
+  </body>
+</html>
