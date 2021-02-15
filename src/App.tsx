@@ -22,7 +22,8 @@ function App() {
   // jsx
   return (
     <div>
-      Osc <br />
+      <h2>Oscillator</h2>
+      <p>Google Chrome is required to run this application</p>
       {waveTable ? (
         <>
           {/* Input for changing the wavetable Position */}
@@ -39,21 +40,17 @@ function App() {
             }
           />
           Wavetable Position: {waveTablePosition} <br />
-
           {/* Input for upoading a wave file */}
           <input type="file" onChange={(e) => uploadFile(e)} />
           Upload Wavetable
-
           {/* Time / Amplitude Graphic */}
           <WaveForm />
-
           {/* Manipulative Spectrum 
           this component gets lazy loaded because there are a lot of elements wich would
           prevent the rest of the implementation from loading */}
           <Suspense fallback={<div>Load Spectrum</div>}>
             <Spectrum />
           </Suspense>
-
           {/* Start/Stop button */}
           <button onMouseDown={() => dispatch(setIsPlaying())}>
             Play Sound
