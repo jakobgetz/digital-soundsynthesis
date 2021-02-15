@@ -10,9 +10,6 @@
   </head>
   <body>
     <h2>Custom Wave Shapes</h2>
-    <p>
-      Please put down your Volume a little bit, so you wont get potentially hurt
-    </p>
 
     <!--Create Input Elements-->
     <!--Start AudioContext-->
@@ -23,6 +20,10 @@
     <button onclick="connect()">On</button>
     <button onclick="disconnect()">Off</button>
     <br />
+    
+    <!--Sine/Saw-->
+    <button onclick="setWaveForm(createSine())">Sine</button>
+    <button onclick="setWaveForm(createSawtooth())">Saw</button>
 
     <!--Javascript-->
     <script>
@@ -36,7 +37,11 @@
         oscillator = context.createOscillator();
         oscillator.start();
 
-        oscillator.setPeriodicWave(createSawtooth());
+        setWaveForm(createSawtooth());
+      };
+      
+      const setWaveForm = (periodicWave) => {
+        oscillator.setPeriodicWave(periodicWave);
       };
 
       const connect = () => oscillator.connect(context.destination);
@@ -55,8 +60,7 @@
         const imag = new Float32Array(resolution);
 
         for (let k = 1; k < resolution; k++) {
-          real[k] = 0;
-          imag[k] = (1 / k) * 1;
+          imag[k] = 1 / k;
         }
         return context.createPeriodicWave(real, imag);
       };
